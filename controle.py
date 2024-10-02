@@ -1,3 +1,4 @@
+import re
 import sys
 from PyQt5 import QtWidgets, uic
 import mysql.connector
@@ -10,6 +11,27 @@ conexao = mysql.connector.connect(
     database = 'Clientes_Connect'
 )
 num_id = 0
+
+def validar(cpf,nome,telefone,aparelho):
+    cpf = Formulario.txtCpf.text()
+    nome = Formulario.txtCliente.text()
+    telefone = Formulario.txtFone.text()
+    aparelho = Formulario.txtAparelho.text()
+
+     # Verifica se os campos estão vazios
+    if not cpf or not nome or not telefone or not aparelho:
+        return "Todos os campos devem estar preenchidos."
+
+    # Verifica se o CPF contém apenas números (usando regex)
+    if not re.match("^[0-9]{11}$", cpf):
+        return "O CPF deve conter exatamente 11 números."
+
+    # Verifica se o telefone contém apenas números (você pode ajustar conforme a necessidade)
+    if not re.match("^[0-9]+$", telefone):
+        return "O telefone deve conter apenas números."
+
+    # Todos os dados são válidos
+    return None
 
 # Função para realizar buscas no banco pelo cpf cadastrado
 def buscar ():
@@ -39,7 +61,7 @@ def delete():
     cursor.execute('select CPF from clientes')
     leitura_banco = cursor.fetchall()
     valor_cpf = leitura_banco [remover][0]
-    cursor.execute('Delete from clientes where cpf = '+str(valor_cpf))
+    cursor.execute('Delete from clientes where cpf = %s',(valor_cpf,))
     lista.lblApagado.setText('CADASTRO APAGADO!')
     conexao.commit()
 
@@ -100,12 +122,16 @@ def insert():
     telefone = Formulario.txtFone.text()
     aparelho = Formulario.txtAparelho.text()
 
+    erro = validar(cpf,nome,telefone,aparelho)
+    if erro:
+        (erro)
+        return
     cursor = conexao.cursor()
     comandos_Sql = 'insert into clientes (cpf, nome, telefone, aparelho) values (%s, %s, %s, %s)'
     dados = (str(cpf), str(nome), str(telefone), str(aparelho))
     cursor.execute(comandos_Sql, dados)
     conexao.commit()
-    
+
     Formulario.txtCpf.setText('')
     Formulario.txtCliente.setText('')
     Formulario.txtFone.setText('')
